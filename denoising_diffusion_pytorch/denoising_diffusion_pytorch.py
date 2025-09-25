@@ -880,8 +880,9 @@ class Trainer:
     def __init__(
         self,
         diffusion_model,
-        folder,
+        folder = None,
         *,
+        dataset = None,
         train_batch_size = 16,
         gradient_accumulate_every = 1,
         augment_horizontal_flip = True,
@@ -940,9 +941,16 @@ class Trainer:
 
         # dataset and dataloader
 
-        self.ds = Dataset(folder, self.image_size, augment_horizontal_flip = augment_horizontal_flip, convert_image_to = convert_image_to)
+        if dataset is not None:
+            # Use provided custom dataset
+            self.ds = dataset
+        elif folder is not None:
+            # Use folder-based dataset (original behavior)
+            self.ds = Dataset(folder, self.image_size, augment_horizontal_flip = augment_horizontal_flip, convert_image_to = convert_image_to)
+        else:
+            raise ValueError("Either 'folder' or 'dataset' must be provided")
 
-        assert len(self.ds) >= 100, 'you should have at least 100 images in your folder. at least 10k images recommended'
+        assert len(self.ds) >= 10, 'you should have at least 10 samples in your dataset. at least 100 recommended'
 
         dl = DataLoader(self.ds, batch_size = train_batch_size, shuffle = True, pin_memory = True, num_workers = cpu_count())
 
